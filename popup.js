@@ -1,13 +1,10 @@
 ; (async () => {
     try {
-        const session = 'session'
-        const local = 'local'
-
         const saveCurrentTinkerCodeBtn = document.querySelector('#saveCurrentCode')
         const feedBackForLocalStorage = document.querySelector('#feedbackLS')
         const listForLocalStorage = document.querySelector('#listLS')
         const debugPanel = document.querySelector('#debugPanel')
-        const saveCurrentLocalStorage = document.querySelector('#saveCurrentLS')
+        const exportBtn = document.querySelector('#export')
 
         const footerInfo = document.querySelector('.footerInfo')
 
@@ -58,41 +55,6 @@
             });
         };
 
-        /**
-         * Save Object in Chrome's Local StorageArea
-         * @param {*} obj 
-         */
-        const saveObjectInLocalStorage = async function (obj) {
-            return new Promise((resolve, reject) => {
-                try {
-                    console.log('saveObjectInLocalStorage')
-                    chrome.storage.local.set(obj, function () {
-                        resolve();
-                    });
-                } catch (ex) {
-                    console.error('saveObjectInLocalStorage: cannot save!')
-                    reject(ex);
-                }
-            });
-        };
-
-        /**
-         * Removes Object from Chrome Local StorageArea.
-         *
-         * @param {string or array of string keys} keys
-         */
-        const removeObjectFromLocalStorage = async function (keys) {
-            return new Promise((resolve, reject) => {
-                try {
-                    chrome.storage.local.remove(keys, function () {
-                        resolve();
-                    });
-                } catch (ex) {
-                    reject(ex);
-                }
-            });
-        };
-
         async function getActiveTabURL() {
             try {
                 const tabs = await chrome.tabs.query({
@@ -114,62 +76,6 @@
                 return domain
             } catch (err) {
                 console.error('Error occured in getActiveTabDomain', err)
-            }
-        }
-
-        // Get all the storage values from the domain to store it in extension's LS
-        function getDomainStorageData(typeOfStorage = 'local', filterKey = '') {
-            try {
-                const selectedStorage =
-                    typeOfStorage === 'local' ? localStorage : sessionStorage
-                const values = []
-                if (selectedStorage) {
-                    if (filterKey.length > 0) {
-                        console.log(`getDomainStorageData: looking for key: ${filterKey} on storage: ${typeOfStorage}`)
-                    }
-                    for (let i = 0; i < selectedStorage?.length; i++) {
-                        const key = selectedStorage.key(i)
-                        if (filterKey.length > 0 && key !== filterKey) {
-                            continue;
-                        }
-                        const selectedStorageObject = {
-                            [key]: selectedStorage.getItem(key),
-                        }
-                        values.push(selectedStorageObject)
-                        console.log(`added key: ${key} to values`)
-                    }
-                }
-                console.log(
-                    'getDomainStorageData-typeOfStorage-values',
-                    typeOfStorage,
-                    values?.length || 0
-                )
-                return values
-            } catch (err) {
-                console.error(
-                    'Error occured in getDomainStorageData',
-                    typeOfStorage,
-                    err
-                )
-            }
-        }
-
-        // Set all the storage values from the extension's LS to the domain's storage
-        function setDomainStorageData(typeOfStorage = 'local', targetKey = '', content = '') {
-            try {
-                console.log(`setDomainStorageData: ${typeOfStorage} > ${targetKey}`)
-                const selectedStorage =
-                    typeOfStorage === 'local' ? localStorage : sessionStorage
-                if (selectedStorage) {
-                    console.log(`setDomainStorageData: setting content: ${content}`)
-                    selectedStorage.setItem(targetKey, content)
-                }
-            } catch (err) {
-                console.error(
-                    'Error occured in setDomainStorageData',
-                    typeOfStorage,
-                    err
-                )
             }
         }
 
@@ -255,71 +161,6 @@
             }
         }
 
-        // Retrieves a value from a specific key array in local storage
-        async function getDomainStorageArrayValue(typeOfStorage = 'local', targetKey = '', domain = '', innerKey = '') {
-            try {
-                if (domain.length === 0) {
-                    domain = await getActiveTabDomain()
-                }
-                console.log(`getDomainStorageArrayValue: ${typeOfStorage} @ ${targetKey} > ${innerKey}`)
-
-                chrome.storage.local.get(targetKey, function (value) {
-                    let current = value[targetKey]
-                    console.log('getDomainStorageArrayValue: current storage is ' + typeof current)
-                    console.log(current)
-                    if (!current || typeof current !== 'object') {
-                        console.log(`getDomainStorageArrayValue: current container for key ${targetKey} is empty`)
-                        console.log(current)
-                        current = {}
-                    }
-
-                    let domainData = current[domain]
-                    if (!domainData || typeof domainData !== 'object') {
-                        console.log(`getDomainStorageArrayValue: current domain data for key ${targetKey}@${domain} is empty`)
-                        console.log(domainData)
-                        domainData = {}
-                    }
-                    console.log('getDomainStorageArrayValue: current domain data is ')
-                    console.log(domainData)
-
-                    if (innerKey?.length > 0) {
-                        const value = domainData[innerKey]
-                    } else {
-                        const value = domainData
-                    }
-                    console.log(`getDomainStorageArrayValue: value retrieved`)
-                    console.log(value)
-
-                    return value
-                });
-            } catch (err) {
-                console.error(
-                    'Error occured in getDomainStorageArrayValue',
-                    typeOfStorage,
-                    err
-                )
-            }
-        }
-
-        function clearDomainStorageData(typeOfStorage = 'local') {
-            const selectedStorage =
-                typeOfStorage === 'local' ? localStorage : sessionStorage
-            selectedStorage && selectedStorage?.clear()
-        }
-
-        function clearExtensionStorage(typeOfStorage = 'local') {
-            chrome.storage.local.remove([typeOfStorage], function () {
-                const error = chrome.runtime.lastError
-                if (error) {
-                    console.error(error)
-                }
-                console.log(
-                    'Cleared Existing Chrome Extension Storage!!',
-                    typeOfStorage
-                )
-            })
-        }
-
         function changeFooterTabStyles(target) {
             let infoTitle = document.querySelector('#infoTitle')
             const allTabs = [infoTitle]
@@ -385,9 +226,7 @@
         }
 
         async function populateLsItemslist() {
-            const activeTab = await getActiveTabURL()
-            const tabId = activeTab?.id
-            const domain = await getActiveTabDomain()
+            const [domain, tab, tabId] = await getContext()
             items = await getExtensionStorageArrayValue('tinker-web-archive', domain)
             setItemList(items)
             setItemsListeners()
@@ -528,13 +367,24 @@
                     deleteBtns[i].addEventListener('click', deleteItem, false)
                 }
             }
-    
+
             var updateBtns = document.getElementsByClassName('update');
             if (updateBtns.length > 0) {
                 for (var i = 0; i < updateBtns.length; i++) {
                     updateBtns[i].addEventListener('click', updateItem, false)
                 }
             }
+        }
+
+        async function exportItems(name = 'tinker-web-helper') {
+            const content = JSON.stringify(items, null, 4);
+            var vLink = document.createElement('a'),
+                vBlob = new Blob([content], { type: "octet/stream" }),
+                vName = `${name}.json`,
+                vUrl = window.URL.createObjectURL(vBlob);
+            vLink.setAttribute('href', vUrl);
+            vLink.setAttribute('download', vName);
+            vLink.click();
         }
 
         /*
@@ -563,30 +413,9 @@
             }
             await saveItem(name)
         })
-
-        saveCurrentLocalStorage?.addEventListener('click', async () => {
-            const activeTab = await getActiveTabURL()
-            const tabId = activeTab?.id
-            console.log('saving current local storage value')
-            chrome.scripting.executeScript(
-                {
-                    target: { tabId: tabId },
-                    func: setDomainStorageData,
-                    args: [local, "tinker-tool"],
-                },
-                () => {
-                    try {
-                        console.log('Saving cuerrent tinker LocalStorage successfull')
-                        // feedBackForLocalStorage.innerHTML = 'Saving cuerrent tinker LocalStorage successfull. ✔️'
-                        updateActivityLog('Saving cuerrent tinker LocalStorage successfull. ✔️')
-                    } catch (err) {
-                        console.error(
-                            'Error occured in injectionResults of saveCurrentLocalStorage',
-                            err
-                        )
-                    }
-                }
-            )
+        
+        exportBtn?.addEventListener('click', async () => {
+            await exportItems()
         })
 
         footerInfo.addEventListener('click', (event) => {
