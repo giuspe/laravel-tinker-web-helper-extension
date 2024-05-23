@@ -18,6 +18,7 @@ Save/restore/organize/search your code!
   - restore snippets from .json file
   - copy/paste snippets between domains
   - better UI :)
+  - settings
   - ...
 
 ## How to install
