@@ -4,6 +4,8 @@ This extension helps you manage code for all of your Laravel web-tinker code!
 
 Save/restore/organize your code!
 
+![alt text](images/screenshot.png)
+
 ## Required permissions
   - scripting 
   - activeTab
