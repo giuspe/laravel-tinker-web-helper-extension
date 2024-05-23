@@ -9,7 +9,9 @@
         const footerInfo = document.querySelector('.footerInfo')
 
         let items = {}
+        let settings = {}
 
+        await getSettings()
         await populateLsItemslist()
 
         /*
@@ -387,6 +389,17 @@
             vLink.click();
         }
 
+        async function getSettings() {
+            chrome.storage.sync.get(
+                { favoriteColor: 'red', likesColor: true },
+                (items) => {
+                    settings = items
+                    console.log(`settings are`)
+                    console.log(settings)
+                }
+            );
+        }
+
         /*
         <-----------Event Listeners Start------------------------------------------------------>
         */
@@ -424,6 +437,14 @@
                 showHideFooterTabs('moreinfoContent')
             }
         })
+
+        document.getElementById('go-to-options').addEventListener('click', function() {
+            if (chrome.runtime.openOptionsPage) {
+              chrome.runtime.openOptionsPage();
+            } else {
+              window.open(chrome.runtime.getURL('options.html'));
+            }
+          });
 
         /*
         <-----------Event Listeners End------------------------------------------------------>

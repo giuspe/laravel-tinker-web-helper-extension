@@ -26,6 +26,9 @@ button {
 button:hover {
     cursor: pointer;
 }
+#go-to-options {
+    cursor: pointer;
+}
 
 .localStorageBtns {
     justify-content: space-around;
