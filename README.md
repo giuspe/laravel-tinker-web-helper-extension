@@ -12,9 +12,10 @@ Save/restore/organize/search your code!
   - preview saved code (with syntax highlighting provided by [highlightjs](https://highlightjs.org/))
   - search in saved snippets
   - restore saved code
+  - download your snippets in .json format
 
 ## Incoming features
-  - backup/restore snippets to/from file
+  - restore snippets from .json file
   - copy/paste snippets between domains
   - better UI :)
   - ...
