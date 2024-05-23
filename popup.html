@@ -1,0 +1,51 @@
+<html>
+
+<head>
+  <link rel="stylesheet" href="./libs/highlight/styles/default.min.css">
+  <!-- <link rel="stylesheet" href="./libs/highlight/styles/github.min.css"> -->
+  <!-- <link rel="stylesheet" href="./libs/highlight/styles/stackoverflow-light.min.css"> -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <header class="extenstionTitleCont">
+    <img class="extensionLogo" width="32px" height="32px" src="./images/apple-icon-60x60.png" alt="logo">
+    <h3 class="extensionTitle">Laravel Web-Tinker manager</h3>
+  </header>
+  <main>
+    <p id="feedbackLS"></p>
+    <div class="localStorageBtns">
+      <input id="save-item-key" placeholder="name" />
+      <button id="saveCurrentCode" type="button">save current code</button>
+    </div>
+    <div id="search">
+      <input id="search-key" type="search" placeholder="search in items" /> <button type="button">search in content</button>
+    </div>
+    <div id="listLS"></div>
+    <div id="debugPanel"></div>
+  </main>
+  <div class="footer">
+    <div class="footerInfo">
+      <p id="infoTitle">More Info</p>
+    </div>
+    <div class="hiddenContent">
+      <div class="moreinfoContent">
+        <p><b>How to save tinker code:</b> pick a name for the saved item and push the save button :)</p>
+
+        <p><b>On each saved item you can:</b>
+        <ul>
+          <li><b>restore:</b> Loads the saved code into current tinker code.</li>
+          <li><b>preview:</b> Loads the saved code for inspection.</li>
+          <li><b>delete:</b> Removes the saved item.</li>
+          <li><b>update:</b> Updates saved item with current tinker code.</li>
+        </ul>
+        </p>
+      </div>
+    </div>
+  </div>
+  <script src="./libs/highlight/highlight.min.js"></script>
+  <script src="./libs/highlight/languages/php.min.js"></script>
+  <script type="module" src="popup.js"></script>
+</body>
+
+</html>

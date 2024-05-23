@@ -1,0 +1,119 @@
+* { 
+	box-sizing: border-box;
+}
+
+body {
+    width: 768px;
+    margin: 0;
+    overflow-y: auto;
+}
+
+.extenstionTitleCont {
+    width: 100%;
+    background-color: #df7a5a;
+    color: black;
+    padding: 2px 4px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+button {
+    height: 30px;
+    border-radius: 4px;
+}
+
+button:hover {
+    cursor: pointer;
+}
+
+.localStorageBtns {
+    justify-content: space-around;
+}
+
+#saveCurrentCode:hover {
+    background-color: #df7a5a;
+    font-weight: bold;
+    border-bottom: 3px solid black;
+}
+
+#feedbackLS {
+    background-color: white;
+    text-align: center;
+}
+
+#infoTitle:hover, #supportTitle:hover, #reportTitle:hover {
+    cursor: pointer;
+    font-weight: bold;
+}
+
+#listLS {
+    width: 99%;
+}
+
+.moreinfoContent {
+    display: none;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    padding: 2px 8px;
+}
+
+a {
+    text-decoration: none;
+}
+
+.footerInfo {
+    height: 30px;
+    padding: 4px;
+    background-color: #df7a5a;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+li.code-item {
+    font-size: 1.2em;
+    margin-bottom: 1em;
+}
+
+li.code-item.hidden {
+    display: none;
+}
+
+li.code-item .actions {
+    text-align: right;
+}
+
+li.code-item.selected::before {
+    content: "[V] ";
+}
+a.restore, a.restore-backup, a.preview, a.update, a.delete {
+    text-decoration: none;
+    padding: 0.3em;
+    border-radius: 0.5em;
+    margin-left: 0.3em;
+    margin-right: 0.3em;
+    border: 1px solid grey;
+}
+
+.actions a {
+    background-color: lightgray;
+}
+
+.actions a:hover {
+    background-color: white;
+}
+
+a.delete {
+    color: lightcoral;
+    background-color: black;
+}
+
+a.delete:hover {
+    background-color: #444444;
+}
+
+.highlight {
+    background-color: yellow;
+}

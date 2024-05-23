@@ -1,0 +1,21 @@
+{
+  "name": "Laravel Web-Tinker manager",
+  "version": "0.1.0",
+  "description": "Helps you manage code for all of your Laravel web-tinker tabs! Save/restore/organize your code",
+  "permissions": ["scripting", "activeTab", "tabs", "storage"],
+  "action": {
+    "default_title": "Laravel Web-Tinker manager",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "service-worker.js",
+    "type": "module"
+  },
+  "icons": {
+    "16": "images/favicon-16x16.png",
+    "32": "images/favicon-32x32.png",
+    "64": "images/apple-icon-60x60.png",
+    "128": "images/apple-icon-120x120.png"
+  },
+  "manifest_version": 3
+}
