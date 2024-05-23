@@ -1,8 +1,13 @@
-# GetSet Local Storage Chrome Extension
+# Laravel web-tinker manager
 
-This extension will let the developers get the local storage values of any website (dev/staging/prod) and set those values into any other domain's local storage.
+This extension helps you manage code for all of your Laravel web-tinker code! 
 
-For e.g, getting the local storage values from dev/staging urls and setting those values into the localhost's localstorage.
+Save/restore/organize your code!
 
-[Chrome Web Store](https://chrome.google.com/webstore/detail/getset-local-storage/ippidodkgapkblnaegmgjhdflkbonoco)
+## permissions
+  - scripting 
+  - activeTab
+  - tabs
+  - storage
+
 # laravel-tinker-web-helper-extension
