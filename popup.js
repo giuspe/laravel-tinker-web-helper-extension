@@ -10,9 +10,20 @@
 
         let items = {}
         let settings = {}
+        const settingsDefaults = { tinkerKeyName: 'tinker-tool' }
 
         await getSettings()
         await populateLsItemslist()
+        const settingsAreValid = await checkSettings()
+
+        if (!settingsAreValid) {
+            const errMessage = `tinker local storage '${settings.tinkerKeyName}' was not found! please check your settings. ❌`
+            console.error(errMessage)
+            const lockUi = document.createElement('div')
+            lockUi.setAttribute("id", "ui-block")
+            document.body.appendChild(lockUi)
+            clearActivityLog(errMessage)
+        }
 
         /*
         <-----------Util Functions Start------------------------------------------------------>
@@ -241,6 +252,10 @@
         function getLocalStorageValue(key) {
             return localStorage[key]
         }
+        
+        function checkLocalStorageKey(key) {
+            return (key in localStorage)
+        }
 
         function setLocalStorageValue(key, content) {
             localStorage[key] = content
@@ -283,7 +298,7 @@
             const [domain, tab, tabId] = await getContext()
             const value = await getExtensionStorageArrayValue('tinker-web-archive', domain, key)
 
-            await chrome.scripting.executeScript({ target: { tabId: tabId }, func: setLocalStorageValue, args: ['tinker-tool', value] });
+            await chrome.scripting.executeScript({ target: { tabId: tabId }, func: setLocalStorageValue, args: [settings.tinkerKeyName, value] });
             clearActivityLog('Tinker-web content local value was restored. ✔️')
             chrome.tabs.reload(tabId)
         }
@@ -302,7 +317,7 @@
         async function updateItem(e) {
             const link = e.target;
             const key = link.getAttribute('data-id')
-            const localKey = 'tinker-tool'
+            const localKey = settings.tinkerKeyName
             const [domain, tab, tabId] = await getContext()
 
             const results = await chrome.scripting.executeScript({ target: { tabId: tabId }, func: getLocalStorageValue, args: [localKey] });
@@ -332,7 +347,10 @@
             return [domain, activeTab, tabId]
         }
 
-        async function getCurrentContent(key = 'tinker-tool') {
+        async function getCurrentContent(key = '') {
+            if (key.length < 1) {
+                key = settings.tinkerKeyName
+            }
             const [domain, tab, tabId] = await getContext()
 
             const results = await chrome.scripting.executeScript({ target: { tabId: tabId }, func: getLocalStorageValue, args: [key] });
@@ -391,13 +409,20 @@
 
         async function getSettings() {
             chrome.storage.sync.get(
-                { favoriteColor: 'red', likesColor: true },
+                settingsDefaults,
                 (items) => {
                     settings = items
                     console.log(`settings are`)
                     console.log(settings)
                 }
             );
+        }
+        
+        async function checkSettings() {
+            const [domain, tab, tabId] = await getContext()
+
+            const results = await chrome.scripting.executeScript({ target: { tabId: tabId }, func: checkLocalStorageKey, args: [settings.tinkerKeyName] });
+            return results[0]?.result
         }
 
         /*
