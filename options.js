@@ -1,12 +1,13 @@
 // Saves options to chrome.storage
 const saveOptions = () => {
-    const color = document.getElementById('color').value;
-    const likesColor = document.getElementById('like').checked;
+    // const color = document.getElementById('color').value;
+    // const likesColor = document.getElementById('like').checked;
+    const tinkerKeyName = document.getElementById('tinker-storage-key-name').value;
 
     chrome.storage.sync.set(
-        { favoriteColor: color, likesColor: likesColor },
+        // { favoriteColor: color, likesColor: likesColor, tinkerKeyName: tinkerKeyName },
+        { tinkerKeyName },
         () => {
-            // Update status to let user know options were saved.
             const status = document.getElementById('status');
             status.textContent = 'Options saved.';
             setTimeout(() => {
@@ -20,10 +21,12 @@ const saveOptions = () => {
 // stored in chrome.storage.
 const restoreOptions = () => {
     chrome.storage.sync.get(
-        { favoriteColor: 'red', likesColor: true },
+        // { favoriteColor: 'red', likesColor: true, tinkerKeyName: 'tinker-tool' },
+        { tinkerKeyName: 'tinker-tool' },
         (items) => {
-            document.getElementById('color').value = items.favoriteColor;
-            document.getElementById('like').checked = items.likesColor;
+            // document.getElementById('color').value = items.favoriteColor;
+            // document.getElementById('like').checked = items.likesColor;
+            document.getElementById('tinker-storage-key-name').value = items.tinkerKeyName;
         }
     );
 };
