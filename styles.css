@@ -18,14 +18,6 @@ body {
     align-items: center;
 }
 
-button {
-    height: 30px;
-    border-radius: 4px;
-}
-
-button:hover {
-    cursor: pointer;
-}
 #go-to-options {
     cursor: pointer;
 }
@@ -44,7 +36,7 @@ button:hover {
     font-weight: bold;
 }
 
-#listLS {
+#snippets-list {
     width: 99%;
 }
 
@@ -69,46 +61,37 @@ a {
     align-items: center;
 }
 
-li.code-item {
-    font-size: 1.2em;
-    margin-bottom: 1em;
+#snippets-list .label {
+    font-size: 1.3em;
 }
 
-li.code-item.hidden {
-    display: none;
+#snippets-list .label:hover {
+    cursor: pointer;
 }
 
-li.code-item .actions {
+#snippets-list .metadata {
+    font-size: 0.8em;
     text-align: right;
 }
 
-li.code-item.selected::before {
-    content: "[V] ";
-}
-a.restore, a.restore-backup, a.preview, a.update, a.delete {
-    text-decoration: none;
-    padding: 0.3em;
-    border-radius: 0.5em;
-    margin-left: 0.3em;
-    margin-right: 0.3em;
-    border: 1px solid grey;
+.code-item.hidden {
+    display: none;
 }
 
-.actions a {
-    background-color: lightgray;
+.code-item.selected, .code-item.selected:hover {
+    background-color: lightgoldenrodyellow;
 }
 
-.actions a:hover {
-    background-color: white;
+.code-item:hover {
+    background-color: lightgrey;
 }
 
-a.delete {
-    color: lightcoral;
-    background-color: black;
+#actions-general {
+    text-align: right;
 }
 
-a.delete:hover {
-    background-color: #444444;
+#export {
+    margin-left: 20%;
 }
 
 .highlight {
@@ -125,3 +108,46 @@ a.delete:hover {
     height: 100%;
     background-color: lightgrey;
 }
+
+/* buttons */
+.button-success,
+.button-error,
+.button-warning,
+.button-secondary {
+    color: white;
+    border-radius: 4px;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+
+.button-success {
+    background: rgb(28, 184, 65);
+}
+
+.button-error {
+    background: rgb(202, 60, 60);
+}
+
+.button-warning {
+    background: rgb(223, 117, 20);
+}
+
+.button-secondary {
+    background: rgb(66, 184, 221);
+}
+
+.button-xsmall {
+    font-size: 70%;
+}
+
+.button-small {
+    font-size: 85%;
+}
+
+.button-large {
+    font-size: 110%;
+}
+
+.button-xlarge {
+    font-size: 125%;
+}
+/* /buttons */

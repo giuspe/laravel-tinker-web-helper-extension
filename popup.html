@@ -1,10 +1,37 @@
 <html>
 
 <head>
-  <link rel="stylesheet" href="./libs/highlight/styles/default.min.css">
-  <!-- <link rel="stylesheet" href="./libs/highlight/styles/github.min.css"> -->
-  <!-- <link rel="stylesheet" href="./libs/highlight/styles/stackoverflow-light.min.css"> -->
+  <link rel="stylesheet" href="./libs/pure/pure-min.css">
+  <link rel="stylesheet" href="./libs/pure/grids-responsive-min.css">
+  <link rel="stylesheet" id='highlight-style' href="./libs/highlight/styles/default.min.css">
   <link rel="stylesheet" href="styles.css">
+
+  <!-- html templates -->
+  <script type="text/html" id="tpl-item-row">
+    <div class="pure-g code-item" id='code-item-{key}' data-id='{key}'>
+      <div class="pure-u-24-24">{label}</div>
+    </div>
+  </script>
+
+  <script type="text/html" id="tpl-item-table-row">
+    <tr class="code-item" id='code-item-{key}' data-id='{key}'>
+      <td class="code-item-label label">{label}</td>
+      <td class="metadata">{size}</td>
+      <td class="metadata">{timestamp}</td>
+      <td class="metadata">
+        <a class="pure-button item-preview" data-id="{key}">preview</a>
+        <a class="pure-button item-to-clipboard" data-id="{key}">to clipboard</a>
+      </td>
+    </tr>
+  </script>
+
+  <script type="text/html" id="tpl-snippet-preview">
+    <button class='pure-button' type='button' id='close-preview'>close preview</button>
+    <button class='pure-button' type='button' id='copy-to-clipboard'>copy content to clipboard</button>
+    <pre id='code-preview'><code id='code-preview-source'>{value}</code></pre>
+    <button class='pure-button' type='button' id='close-preview-bottom'>close preview</button>
+  </script>
+  <!-- /html templates -->
 </head>
 
 <body>
@@ -15,17 +42,57 @@
   <main id="main-container">
     <p id="feedbackLS"></p>
     <div class="localStorageBtns">
-      <input id="save-item-key" placeholder="name" />
-      <button id="saveCurrentCode" type="button">save current code into new snippet</button>
+      <form class="pure-form pure-form-aligned">
+        <fieldset>
+          <div class="pure-control-group">
+            <input type="text" id="save-item-key" placeholder="name" />
+            <button id="saveCurrentCode" class='pure-button pure-button-primary button-large' type="button">
+              save current code into new snippet
+            </button>
+            <button type="button" class='pure-button' id="export">export snippets to json</button>
+            <!-- input type="file" id="import" accept=".json" /> <button type="button" id="import">import snippets from json</button -->
+          </div>
+        </fieldset>
+      </form>
     </div>
-    <div id="search">
-      <input id="search-key" type="search" placeholder="search" /> <button type="button">search in saved snippets</button>
+    <div class="pure-g code-item">
+      <div class="pure-u-12-24">
+        <div id="search">
+          <form class="pure-form pure-form-aligned">
+            <fieldset>
+              <div class="pure-control-group">
+                <input id="search-key" type="search" placeholder="search" />
+                <button class='pure-button pure-button-primary button-large' type="button">
+                  search in saved snippets
+                </button>
+              </div>
+            </fieldset>
+          </form>
+        </div>
+      </div>
+      <div class="pure-u-12-24">
+        <div class="pure-button-group" id="actions-general" role="group" aria-label="snippet actions">
+          <a href='#' class='pure-button button-secondary restore' title='load' id='action-restore'> load</i></a>
+          <a href='#' class='pure-button button-secondary restore-backup' title='load (with backup)'
+            id='action-restore-backup'> backup & load</a>
+          <a href='#' class='pure-button button-secondary update' title='update' id='action-update'> update</a>
+          <a href='#' class='pure-button button-warning delete' title='delete' id='action-delete'> delete</a>
+        </div>
+      </div>
     </div>
-    <div id="export-import">
-      <button type="button" id="export">export snippets to json</button> <br />
-      <!-- input type="file" id="import" accept=".json" /> <button type="button" id="import">import snippets from json</button -->
-    </div>
-    <div id="listLS"></div>
+   
+    <table id='snippets-list' class='pure-table pure-table-bordered'>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th class="metadata">Size</th>
+          <th class="metadata">Created at</th>
+          <th class="metadata"></th>
+        </tr>
+      </thead>
+      <tbody id='snippets-table-body'>
+      </tbody>
+    </table>
     <div id="debugPanel"></div>
   </main>
   <div class="footer">
@@ -50,6 +117,7 @@
   </div>
   <script src="./libs/highlight/highlight.min.js"></script>
   <script src="./libs/highlight/languages/php.min.js"></script>
+  <script src="./libs/string-template.js"></script>
   <script type="module" src="popup.js"></script>
 </body>
 

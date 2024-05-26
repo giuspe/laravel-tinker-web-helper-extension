@@ -3,23 +3,38 @@
   <head>
     <title>Laravel Web-Tinker manager Options</title>
   </head>
-  <body>
-    <!-- <select id="color">
-      <option value="red">red</option>
-      <option value="green">green</option>
-      <option value="blue">blue</option>
-      <option value="yellow">yellow</option>
-    </select>
-
-    <label>
-      <input type="checkbox" id="like" />
-      I like colors.
-    </label>
-     -->
+  <body>    
     <label>
       Tinker local storage key name
       <input type="text" id="tinker-storage-key-name" />
     </label>
+    <br />
+
+    <label>
+      UI locale
+      <select id="locale">
+        <option value="de-DE">de-DE</option>
+        <option value="en-EN">en-EN</option>
+        <option value="it-IT">it-IT</option>
+      </select>
+    </label>
+    <br />
+
+    <label>
+      Code highlight style
+      <select id="highlightStyle">
+        <option value="default">default</option>
+        <option value="github">github</option>
+        <option value="stackoverflow-light">stackoverflow light</option>
+      </select>
+    </label>
+    <br />
+
+    <label>
+      <input type="checkbox" id="verboseLogs" />
+      Verbose logs in console.
+    </label>
+    <br />
 
     <div id="status"></div>
     <button id="save">Save</button>

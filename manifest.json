@@ -2,7 +2,7 @@
   "name": "Laravel Web-Tinker manager",
   "version": "0.1.0",
   "description": "Helps you manage code for all of your Laravel web-tinker tabs! Save/restore/organize your code",
-  "permissions": ["scripting", "activeTab", "tabs", "storage"],
+  "permissions": ["scripting", "activeTab", "tabs", "storage", "declarativeContent", "clipboard"],
   "action": {
     "default_title": "Laravel Web-Tinker manager",
     "default_popup": "popup.html"

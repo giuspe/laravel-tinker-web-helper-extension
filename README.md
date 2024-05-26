@@ -13,11 +13,14 @@ Save/restore/organize/search your code!
   - search in saved snippets
   - restore saved code
   - download your snippets in .json format
+  - (slightly) better UI
+  - rename snippets
+  - copy content to clipboard
 
 ## Incoming features
   - restore snippets from .json file
   - copy/paste snippets between domains
-  - better UI :)
+  - (even) better UI :)
   - settings
   - ...
 
@@ -32,3 +35,5 @@ Save/restore/organize/search your code!
   - activeTab
   - tabs
   - storage
+  - declarativeContent
+  - clipboard
