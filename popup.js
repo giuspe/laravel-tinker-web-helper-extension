@@ -32,18 +32,18 @@
             const lockUi = document.createElement('div')
             lockUi.setAttribute("id", "ui-block")
             document.body.appendChild(lockUi)
-            clearActivityLog(errMessage)
+            refreshActivityLog(errMessage)
         }
 
         /*
         <-----------Util Functions Start------------------------------------------------------>
         */
 
-        function updateActivityLog(content = '') {
+        function appendToActivityLog(content = '') {
             feedBackForLocalStorage.innerHTML += '<hr />' + content
         }
 
-        function clearActivityLog(content = '') {
+        function refreshActivityLog(content = '') {
             feedBackForLocalStorage.innerHTML = content
         }
 
@@ -70,13 +70,13 @@
             return new Promise((resolve, reject) => {
                 try {
                     chrome.storage.local.get(key, function (value) {
-                        resolve(value[key]);
-                    });
+                        resolve(value[key])
+                    })
                 } catch (ex) {
-                    reject(ex);
+                    reject(ex)
                 }
-            });
-        };
+            })
+        }
 
         async function getActiveTabURL() {
             try {
@@ -138,7 +138,7 @@
 
                 chrome.storage.local.set(persistedValue, function () {
                     log(`setExtensionStorageArrayValue: ${targetKey} saved in local storage`)
-                });
+                })
             } catch (err) {
                 console.error(
                     'Error occured in setExtensionStorageArrayValue',
@@ -212,13 +212,13 @@
         function setItemList(data) {
             snippetsListTable.innerHTML = ``
 
-            let sortable = [];
+            let sortable = []
             for (var key in data) {
                 const timestamp = key.split('::')[0]
-                sortable.push([key, timestamp, data[key]]);
+                sortable.push([key, timestamp, data[key]])
             }
             const sorted = sortable.sort((a, b) => {
-                return b[1] - a[1];
+                return b[1] - a[1]
             })
 
             for (const [key, stamp, value] of sorted) {
@@ -228,7 +228,7 @@
                 const size = formatBytes(value.length)
 
                 const item = document.getElementById('tpl-item-table-row').innerHTML.nodeFromTemplate({ key, label, timestamp, size }, 'tbody')
-                snippetsListTable.appendChild(item);
+                snippetsListTable.appendChild(item)
             }
         }
 
@@ -236,18 +236,18 @@
             if (search.length < 3) {
                 return
             }
-            const inputText = document.getElementById("code-preview-source");
+            const inputText = document.getElementById("code-preview-source")
             if (!inputText) {
                 return
             }
 
-            const regex = new RegExp(search, 'gi');
+            const regex = new RegExp(search, 'gi')
 
-            let text = inputText.innerHTML;
-            text = text.replace(/(<mark class="highlight">|<\/mark>)/gim, '');
+            let text = inputText.innerHTML
+            text = text.replace(/(<mark class="highlight">|<\/mark>)/gim, '')
 
-            const newText = text.replace(regex, '<mark class="highlight">$&</mark>');
-            inputText.innerHTML = newText;
+            const newText = text.replace(regex, '<mark class="highlight">$&</mark>')
+            inputText.innerHTML = newText
         }
 
         async function populateSnippetsList() {
@@ -278,7 +278,7 @@
 
         async function toClipboard(content) {
             if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
-                await navigator.clipboard.writeText(content);
+                await navigator.clipboard.writeText(content)
             }
         }
 
@@ -319,8 +319,8 @@
 
                 const key = activeItem.getAttribute('data-id')
                 const content = items[key]
-                toClipboard(content);
-                clearActivityLog(`Current preview code copied to clipboard. ${iconSuccess}`)
+                toClipboard(content)
+                refreshActivityLog(`Current preview code copied to clipboard. ${iconSuccess}`)
             })
             document.getElementById('close-preview').addEventListener('click', clearDebugPanel, false)
             document.getElementById('close-preview-bottom').addEventListener('click', clearDebugPanel, false)
@@ -330,14 +330,15 @@
             if (searchKey.length > 2) {
                 highlightMatches(searchKey)
             }
-            clearActivityLog(`Tinker-web content local value was set in preview panel. ${iconSuccess}`)
+            debugPanel.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' })
+            refreshActivityLog(`Tinker-web content local value was set in preview panel. ${iconSuccess}`)
         }
 
         async function clipItem(e) {
             const link = e.target
             const key = link.getAttribute('data-id')
             toClipboard(items[key])
-            clearActivityLog(`Snippet code copied to clipboard. ${iconSuccess}`)
+            refreshActivityLog(`Snippet code copied to clipboard. ${iconSuccess}`)
         }
 
         async function restoreItem(e) {
@@ -345,14 +346,14 @@
                 return
             }
 
-            const link = activeItem;
+            const link = activeItem
             const key = link.getAttribute('data-id')
             const [domain, tab, tabId] = await getContext()
             const value = await getExtensionStorageArrayValue('tinker-web-archive', domain, key)
 
-            await chrome.scripting.executeScript({ target: { tabId: tabId }, func: setLocalStorageValue, args: [settings.tinkerKeyName, value] });
+            await chrome.scripting.executeScript({ target: { tabId: tabId }, func: setLocalStorageValue, args: [settings.tinkerKeyName, value] })
 
-            clearActivityLog(`Tinker-web content local value was restored. ${iconSuccess}`)
+            refreshActivityLog(`Tinker-web content local value was restored. ${iconSuccess}`)
             chrome.tabs.reload(tabId)
         }
 
@@ -361,12 +362,12 @@
                 return
             }
 
-            const link = activeItem;
+            const link = activeItem
             const key = link.getAttribute('data-id')
             const [domain, tab, tabId] = await getContext()
 
             await setExtensionStorageArrayValue('tinker-web-archive', domain, '', key)
-            clearActivityLog(`Tinker-web content saved item ${key} was removed. ${iconSuccess}`)
+            refreshActivityLog(`Tinker-web content saved item ${key} was removed. ${iconSuccess}`)
 
             populateSnippetsList()
             clearDebugPanel()
@@ -379,16 +380,16 @@
                 return
             }
 
-            const link = activeItem;
+            const link = activeItem
             const key = link.getAttribute('data-id')
             const localKey = settings.tinkerKeyName
             const [domain, tab, tabId] = await getContext()
 
-            const results = await chrome.scripting.executeScript({ target: { tabId: tabId }, func: getLocalStorageValue, args: [localKey] });
+            const results = await chrome.scripting.executeScript({ target: { tabId: tabId }, func: getLocalStorageValue, args: [localKey] })
             const currentValue = results[0]?.result
 
             await setExtensionStorageArrayValue('tinker-web-archive', domain, currentValue, key)
-            clearActivityLog(`Tinker-web current content was updated in current item. ${iconSuccess}`)
+            refreshActivityLog(`Tinker-web current content was updated in current item. ${iconSuccess}`)
 
             populateSnippetsList()
             chrome.tabs.reload(tabId)
@@ -397,18 +398,18 @@
         async function renameItem(e) {
             setActiveItem(e)
 
-            const link = activeItem;
+            const link = activeItem
             const key = link.getAttribute('data-id')
             const localKey = settings.tinkerKeyName
             const [domain, tab, tabId] = await getContext()
 
-            const results = await chrome.scripting.executeScript({ target: { tabId: tabId }, func: getLocalStorageValue, args: [localKey] });
+            const results = await chrome.scripting.executeScript({ target: { tabId: tabId }, func: getLocalStorageValue, args: [localKey] })
             const currentValue = results[0]?.result
 
             const label = key.split('::')[1]
-            let newName = prompt("Enter a new name for this snippet", label);
+            let newName = prompt("Enter a new name for this snippet", label)
             if (!newName) {
-                clearActivityLog(`Sorry, we need a name. ${iconError}`)
+                refreshActivityLog(`Sorry, we need a name. ${iconError}`)
             }
             const newKey = `${key.split('::')[0]}::${newName}`
 
@@ -417,7 +418,7 @@
             log(`newKey is: ${newKey}`)
             saveItem(newKey, currentValue, true)
 
-            clearActivityLog(`Tinker-web current content was updated in current item. ${iconSuccess}`)
+            refreshActivityLog(`Tinker-web current content was updated in current item. ${iconSuccess}`)
             chrome.tabs.reload(tabId)
         }
 
@@ -430,7 +431,7 @@
             const prefix = skipTimestamp ? '' : Date.now() + '::'
 
             await setExtensionStorageArrayValue('tinker-web-archive', domain, content, prefix + name)
-            updateActivityLog(`Tinker-web content local value was saved in archive. ${iconSuccess}`)
+            refreshActivityLog(`Tinker-web content local value was saved in archive. ${iconSuccess}`)
 
             populateSnippetsList()
         }
@@ -438,7 +439,7 @@
         function setActiveItem(e, element = '') {
             document.querySelectorAll('.code-item').forEach((element) => {
                 element.classList.remove('selected')
-            });
+            })
 
             let el = null
             if (element) {
@@ -477,9 +478,9 @@
             }
             const [domain, tab, tabId] = await getContext()
 
-            const results = await chrome.scripting.executeScript({ target: { tabId: tabId }, func: getLocalStorageValue, args: [key] });
+            const results = await chrome.scripting.executeScript({ target: { tabId: tabId }, func: getLocalStorageValue, args: [key] })
             const currentValue = results[0]?.result
-            return currentValue;
+            return currentValue
         }
 
         function updateGeneralActions() {
@@ -531,14 +532,14 @@
             if (!name) {
                 name = Date.now() + `.tinker-web-helper`
             }
-            const content = JSON.stringify(items, null, 4);
+            const content = JSON.stringify(items, null, 4)
             var vLink = document.createElement('a'),
                 vBlob = new Blob([content], { type: "octet/stream" }),
                 vName = `${name}.json`,
-                vUrl = window.URL.createObjectURL(vBlob);
-            vLink.setAttribute('href', vUrl);
-            vLink.setAttribute('download', vName);
-            vLink.click();
+                vUrl = window.URL.createObjectURL(vBlob)
+            vLink.setAttribute('href', vUrl)
+            vLink.setAttribute('download', vName)
+            vLink.click()
         }
 
         async function getSettings() {
@@ -550,7 +551,7 @@
                     settings = items
                     setHighlightStyle()
                 }
-            );
+            )
         }
 
         function setHighlightStyle() {
@@ -560,14 +561,14 @@
             if (settings.highlightStyle != 'default') {
                 let newStyle = cssPath.replace('default.min.css', `${settings.highlightStyle}.min.css`)
                 log(`new highlight style is: ${newStyle}`)
-                document.getElementById('highlight-style').href = newStyle;
+                document.getElementById('highlight-style').href = newStyle
             }
         }
 
         async function checkSettings() {
             const [domain, tab, tabId] = await getContext()
 
-            const results = await chrome.scripting.executeScript({ target: { tabId: tabId }, func: checkLocalStorageKey, args: [settings.tinkerKeyName] });
+            const results = await chrome.scripting.executeScript({ target: { tabId: tabId }, func: checkLocalStorageKey, args: [settings.tinkerKeyName] })
             return results[0]?.result
         }
 
@@ -576,7 +577,7 @@
         */
 
         document.getElementById('search-key').addEventListener("change", (event) => {
-            var toSearch = event.target.value;
+            var toSearch = event.target.value
             if (toSearch.length > 2) {
                 highlightMatches(toSearch)
             }
@@ -587,12 +588,12 @@
                     document.getElementById(`code-item-${key}`).classList.remove('hidden')
                 }
             }
-        });
+        })
 
         saveCurrentTinkerCodeBtn?.addEventListener('click', async () => {
             const name = document.getElementById('save-item-key').value
             if (name?.length < 3) {
-                clearActivityLog(`please set a name for the preset (3 chars minimum). ${iconError}`)
+                refreshActivityLog(`please set a name for the preset (3 chars minimum). ${iconError}`)
                 return
             }
             await saveItem(name)
@@ -611,11 +612,11 @@
 
         document.getElementById('go-to-options').addEventListener('click', function () {
             if (chrome.runtime.openOptionsPage) {
-                chrome.runtime.openOptionsPage();
+                chrome.runtime.openOptionsPage()
             } else {
-                window.open(chrome.runtime.getURL('options.html'));
+                window.open(chrome.runtime.getURL('options.html'))
             }
-        });
+        })
 
         /*
         <-----------Event Listeners End------------------------------------------------------>
