@@ -595,10 +595,9 @@
         })
 
         saveCurrentTinkerCodeBtn?.addEventListener('click', async () => {
-            const name = document.getElementById('save-item-key').value
-            if (name?.length < 3) {
-                refreshActivityLog(`please set a name for the preset (3 chars minimum). ${iconError}`)
-                return
+            let name = document.getElementById('save-item-key').value
+            if (!name?.length) {
+                name = (new Date()).toLocaleString(settings.locale)
             }
             await saveItem(name)
         })
