@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "Laravel Web-Tinker manager (2.0)",
+  "version": "0.1.0",
+  "description": "Helps you manage code for all of your Laravel web-tinker tabs! Save/restore/organize your code",
+  "host_permissions": [
+    "https://zenquotes.io/"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "images/logo-16x16.png",
+      "48": "images/logo-48x48.png",
+      "192": "images/logo-192x192.png"
+    }
+  }
+}
