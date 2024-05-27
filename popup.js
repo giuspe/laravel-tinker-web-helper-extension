@@ -15,6 +15,7 @@
             tinkerKeyName: 'tinker-tool',
             locale: 'de-DE',
             verboseLogs: false,
+            usePortInDomainKey: true,
             highlightStyle: 'stackoverflow-light',
         }
 
@@ -93,8 +94,11 @@
         async function getActiveTabDomain() {
             try {
                 const tab = await getActiveTabURL()
-                var url = new URL(tab.url)
-                var domain = url.hostname
+                let url = new URL(tab.url)
+                let domain = url.hostname
+                if (settings.usePortInDomainKey) {
+                    domain += `--${url.port ? url.port : 80}`
+                }
                 return domain
             } catch (err) {
                 console.error('Error occured in getActiveTabDomain', err)
@@ -213,7 +217,7 @@
             snippetsListTable.innerHTML = ``
 
             let sortable = []
-            for (var key in data) {
+            for (let key in data) {
                 const timestamp = key.split('::')[0]
                 sortable.push([key, timestamp, data[key]])
             }
@@ -486,7 +490,7 @@
         function updateGeneralActions() {
             const actionButtons = document.querySelectorAll('#actions-general .pure-button')
             const disabledClass = 'pure-button-disabled'
-            for (var i = 0; i < actionButtons.length; i++) {
+            for (let i = 0; i < actionButtons.length; i++) {
                 activeItem ? actionButtons[i].classList.remove(disabledClass) : actionButtons[i].classList.add(disabledClass)
             }
         }
@@ -494,7 +498,7 @@
         function setItemsListeners() {
             const rows = document.getElementsByClassName('code-item-label')
             if (rows.length > 0) {
-                for (var i = 0; i < rows.length; i++) {
+                for (let i = 0; i < rows.length; i++) {
                     rows[i].addEventListener('click', setActiveItem, false)
                     rows[i].addEventListener('dblclick', renameItem, false)
                 }
@@ -502,14 +506,14 @@
             
             const btnPreview = document.getElementsByClassName('item-preview')
             if (btnPreview.length > 0) {
-                for (var i = 0; i < btnPreview.length; i++) {
+                for (let i = 0; i < btnPreview.length; i++) {
                     btnPreview[i].addEventListener('click', previewItem, false)
                 }
             }
             
             const btnClip = document.getElementsByClassName('item-to-clipboard')
             if (btnClip.length > 0) {
-                for (var i = 0; i < btnClip.length; i++) {
+                for (let i = 0; i < btnClip.length; i++) {
                     btnClip[i].addEventListener('click', clipItem, false)
                 }
             }
@@ -533,7 +537,7 @@
                 name = Date.now() + `.tinker-web-helper`
             }
             const content = JSON.stringify(items, null, 4)
-            var vLink = document.createElement('a'),
+            let vLink = document.createElement('a'),
                 vBlob = new Blob([content], { type: "octet/stream" }),
                 vName = `${name}.json`,
                 vUrl = window.URL.createObjectURL(vBlob)
@@ -577,7 +581,7 @@
         */
 
         document.getElementById('search-key').addEventListener("change", (event) => {
-            var toSearch = event.target.value
+            let toSearch = event.target.value
             if (toSearch.length > 2) {
                 highlightMatches(toSearch)
             }
