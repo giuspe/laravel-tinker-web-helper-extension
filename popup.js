@@ -5,8 +5,9 @@
         const snippetsListTable = document.getElementById('snippets-table-body')
         const debugPanel = document.querySelector('#debugPanel')
         const exportBtn = document.querySelector('#export')
-
         const footerInfo = document.querySelector('.footerInfo')
+
+        const channel = new BroadcastChannel('LARAWEL_WEB_TINKER_HELPER');
 
         let activeItem = null
         let items = {}
@@ -213,18 +214,30 @@
             })
         }
 
-        function setItemList(data) {
-            snippetsListTable.innerHTML = ``
+        function getLatestSnippet() {
+            const sorted = getSortedItems(items)
+            if(sorted?.length) {
+                const key = Object.keys(sorted)[0]
+                return { key: key, item: sorted[key] } 
+            }
+            return null
+        }
 
+        function getSortedItems(data) {
             let sortable = []
             for (let key in data) {
                 const timestamp = key.split('::')[0]
                 sortable.push([key, timestamp, data[key]])
             }
-            const sorted = sortable.sort((a, b) => {
+            return sortable.sort((a, b) => {
                 return b[1] - a[1]
             })
+        }
 
+        function setItemList(data) {
+            snippetsListTable.innerHTML = ``
+
+            const sorted = getSortedItems(data)
             for (const [key, stamp, value] of sorted) {
                 const label = key.split('::')[1]
                 const date = new Date(Number(stamp))
@@ -303,21 +316,22 @@
             return true
         }
 
-        async function previewItem(e) {
-            const link = e.target
-            const key = link.getAttribute('data-id')
-
+        async function previewItem(e, key = null) {
+            if (!key) {
+                const link = e.target
+                key = link.getAttribute('data-id')
+            }
             const parentElement = document.getElementById(`code-item-${key}`)
 
             if (!activeItem || activeItem != parentElement) {
-                setActiveItem(e, e.target)
+                setActiveItem(e, e.target, key)
             }
 
             const [domain, tab, tabId] = await getContext()
             const value = await getExtensionStorageArrayValue('tinker-web-archive', domain, key)
             updateDebugPanel(document.getElementById('tpl-snippet-preview').innerHTML.template({ value }))
-            document.getElementById('copy-to-clipboard').addEventListener('click', function(e) {
-                if(!activeItem) {
+            document.getElementById('copy-to-clipboard').addEventListener('click', function (e) {
+                if (!activeItem) {
                     return
                 }
 
@@ -345,13 +359,15 @@
             refreshActivityLog(`Snippet code copied to clipboard. ${iconSuccess}`)
         }
 
-        async function restoreItem(e) {
+        async function restoreItem(e, key = '') {
             if (!activeItem) {
                 return
             }
 
-            const link = activeItem
-            const key = link.getAttribute('data-id')
+            if (!key) {
+                const link = activeItem
+                const key = link.getAttribute('data-id')
+            }
             const [domain, tab, tabId] = await getContext()
             const value = await getExtensionStorageArrayValue('tinker-web-archive', domain, key)
 
@@ -379,13 +395,15 @@
             updateGeneralActions()
         }
 
-        async function updateItem(e) {
+        async function updateItem(e, key = null) {
             if (!activeItem) {
                 return
             }
 
-            const link = activeItem
-            const key = link.getAttribute('data-id')
+            if (!key) {
+                const link = activeItem
+                const key = link.getAttribute('data-id')
+            }
             const localKey = settings.tinkerKeyName
             const [domain, tab, tabId] = await getContext()
 
@@ -414,6 +432,7 @@
             let newName = prompt("Enter a new name for this snippet", label)
             if (!newName) {
                 refreshActivityLog(`Sorry, we need a name. ${iconError}`)
+                return
             }
             const newKey = `${key.split('::')[0]}::${newName}`
 
@@ -440,17 +459,20 @@
             populateSnippetsList()
         }
 
-        function setActiveItem(e, element = '') {
+        function setActiveItem(e, element = '', key) {
             document.querySelectorAll('.code-item').forEach((element) => {
                 element.classList.remove('selected')
             })
 
             let el = null
-            if (element) {
-                const key = element.getAttribute('data-id')
+            if (key) {
+                el = document.getElementById(`code-item-${key}`)
+            } else if (element) {
+                key = element.getAttribute('data-id')
                 el = document.getElementById(`code-item-${key}`)
             } else {
                 el = e.target.parentElement
+                key = el.getAttribute('data-id')
             }
 
             if (!el) {
@@ -459,9 +481,17 @@
 
             if (!activeItem || activeItem != el) {
                 activeItem = el
-                console.log(`setting active item class`)
                 el.classList.add('selected')
-            } else if (activeItem == el) {
+
+                // check for keyboard modifiers
+                if(e?.ctrlKey) {
+                    updateItem(null, key)
+                } else if(e?.altKey) {
+                    restoreItem(null, key)
+                } else if(e?.shiftKey) {
+                    previewItem(null, key)
+                }
+            } else if (activeItem  == el) {
                 activeItem = null
             }
             clearDebugPanel()
@@ -503,14 +533,14 @@
                     rows[i].addEventListener('dblclick', renameItem, false)
                 }
             }
-            
+
             const btnPreview = document.getElementsByClassName('item-preview')
             if (btnPreview.length > 0) {
                 for (let i = 0; i < btnPreview.length; i++) {
                     btnPreview[i].addEventListener('click', previewItem, false)
                 }
             }
-            
+
             const btnClip = document.getElementsByClassName('item-to-clipboard')
             if (btnClip.length > 0) {
                 for (let i = 0; i < btnClip.length; i++) {
@@ -530,6 +560,23 @@
             }, false)
             document.getElementById('action-delete').addEventListener('click', deleteItem, false)
             document.getElementById('action-update').addEventListener('click', updateItem, false)
+
+            channel.onmessage = (event) => {
+                log('message received from service worker', event.data);
+                switch(event.data.action) {
+                    case 'update-latest-snippet':
+                        log('Updating latest snippet', event.data);
+                        const snippets = document.querySelectorAll('tr.code-item')
+                        if (!snippets.length) {
+                            log(`latest snippet could not be loaded. No snippets saved?`)
+                            return
+                        }
+                        setActiveItem(null, snippets[0])
+                        updateItem()
+                    default:
+                        log('Action unknown', event.data);
+                }
+            }
         }
 
         async function exportItems(name = '') {
