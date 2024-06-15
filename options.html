@@ -1,50 +1,159 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Laravel Web-Tinker manager Options</title>
-  </head>
-  <body>    
-    <label>
-      Tinker local storage key name
-      <input type="text" id="tinker-storage-key-name" />
-    </label>
-    <br />
 
-    <label>
-      UI locale
-      <select id="locale">
-        <option value="de-DE">de-DE</option>
-        <option value="en-EN">en-EN</option>
-        <option value="it-IT">it-IT</option>
-      </select>
-    </label>
-    <br />
+<head>
+  <title>Laravel Web-Tinker manager Options</title>
+  <link rel="stylesheet" href="./libs/pure/pure-min.css">
+  <link rel="stylesheet" href="./libs/pure/grids-responsive-min.css">
+  <style>
+    fieldset.pure-group {
+      border: 1px solid grey;
+      padding: 1em;
+      margin: 1em;
+    }
 
-    <label>
-      Code highlight style
-      <select id="highlightStyle">
-        <option value="default">default</option>
-        <option value="github">github</option>
-        <option value="stackoverflow-light">stackoverflow light</option>
-      </select>
-    </label>
-    <br />
+    div.pure-control-group {
+      margin-bottom: 1em;
+    }
 
-    <label>
-      <input type="checkbox" id="verboseLogs" />
-      Verbose logs in console.
-    </label>
-    <br />
-    
-    <label>
-      <input type="checkbox" id="usePortInDomainKey" />
-      Use address port (if present) in the domain key.
-    </label>
-    <br />
+    .status-container {
+      padding-top: 20%;
+      padding-bottom: 20%;
+      text-align: left;
+    }
 
-    <div id="status"></div>
-    <button id="save">Save</button>
+    #status {
+      font-size: 2em;
+      padding-left: 1em;
+      padding-right: 1em;
+    }
 
-    <script src="options.js"></script>
-  </body>
+    .error {
+      color: red;
+    }
+
+    .warning {
+      color: lightslategrey;
+    }
+
+    .success {
+      color: green;
+    }
+
+    #import-preview li {}
+
+    #import-preview li input {
+      display: inline-block;
+      margin-right: 1em;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="pure-g code-item">
+    <div class="pure-u-16-24">
+      <form class="pure-form pure-form-stacked" style="padding: 2em;">
+        <fieldset class="pure-group">
+          <div class="pure-control-group">
+            <label for="tinker-storage-key-name">Tinker local storage key name</label>
+            <input type="text" id="tinker-storage-key-name" placeholder="Username" class="autosave" />
+            <span class="pure-form-message-inline">The extension will look for this value into local storage. You
+              probably don't need to change this.</span>
+          </div>
+        </fieldset>
+
+        <fieldset class="pure-group">
+          <div class="pure-control-group">
+            <label for="locale">UI locale</label>
+            <select id="locale" class="autosave">
+              <option value="de-DE">de-DE</option>
+              <option value="en-EN">en-EN</option>
+              <option value="it-IT">it-IT</option>
+            </select>
+            <span class="pure-form-message-inline">This value just affects the formatting of dates.</span>
+          </div>
+        </fieldset>
+
+        <fieldset class="pure-group">
+          <div class="pure-control-group">
+            <label for="snippetImportAction">Snippet import action</label>
+            <select id="snippetImportAction" class="autosave">
+              <option value="merge">merge (different keys will be added)</option>
+              <option value="replace">replace content</option>
+            </select>
+            <span class="pure-form-message-inline">'Merge' tactic is recommended, use 'Replace content' for a fresh
+              start.</span>
+          </div>
+          <div class="pure-control-group" id="snippetImportActionMergeStrategyContainer">
+            <label for="snippetImportActionMergeStrategy">Snippet import merge strategy</label>
+            <select id="snippetImportActionMergeStrategy" class="autosave">
+              <option value="keep-same">keep existing keys as they are (identical keys from backup file will be ignored)
+              </option>
+              <option value="replace-same">overwrite existing keys (identical keys from backup file will overwrite
+                existing
+                ones)</option>
+            </select>
+            <span class="pure-form-message-inline">If the 'Merge' tactic is selected, this determines strategy for
+              conflicting keys (per domain): keep the current one or use the one from the imported file?.</span>
+          </div>
+        </fieldset>
+        <fieldset class="pure-group">
+          <div class="pure-control-group">
+            <label for="highlightStyle">Code highlight style</label>
+            <select id="highlightStyle" class="autosave">
+              <option value="default">default</option>
+              <option value="github">github</option>
+              <option value="stackoverflow-light">stackoverflow light</option>
+            </select>
+            <span class="pure-form-message-inline">Code display style for the snippet preview window.</span>
+          </div>
+        </fieldset>
+        <fieldset class="pure-group">
+          <div class="pure-control-group">
+            <label for="verboseLogs" class="pure-checkbox">
+              <input type="checkbox" id="verboseLogs" class="autosave" /> Verbose logs in console
+            </label>
+            <span class="pure-form-message-inline">Make the extension louder in dev-tools console.</span>
+          </div>
+        </fieldset>
+        <fieldset class="pure-group">
+          <div class="pure-control-group">
+            <label for="usePortInDomainKey" class="pure-checkbox">
+              <input type="checkbox" id="usePortInDomainKey" class="autosave" /> Use address port (if present) in the
+              domain key.
+            </label>
+            <span class="pure-form-message-inline">This flag makes the extension consider the port (and not just the
+              domain) to compose the domain unique key. Keep this on if you need to use the extension for 'localhost' or
+              '127.0.0.1' tinker panels.</span>
+          </div>
+        </fieldset>
+        <fieldset class="pure-group">
+          <div class="pure-control-group">
+            <label for="import">Import .json file</label>
+            <input type="file" id="import" accept=".json" />
+            <div id="import-preview"></div>
+            <span class="pure-form-message-inline"><button type="button" id="import-button">import snippets from
+                json</button></span>
+            <span class="pure-form-message-inline">Here you can import a .json file of snippets.</span>
+          </div>
+          <div class="pure-control-group">
+            <label for="export">export snippets to .json</label>
+            <button type="button" class='pure-button' id="export">export</button>
+            <span class="pure-form-message-inline">Export all your snippets (by domain) in a .json file.</span>
+          </div>
+        </fieldset>
+        <fieldset class="pure-group">
+          <div class="pure-controls">
+            <button id="save" type="submit" class="pure-button pure-button-primary">Save</button>
+          </div>
+        </fieldset>
+      </form>
+    </div>
+    <div class="pure-u-8-24 status-container">
+      <div id="status"></div>
+    </div>
+  </div>
+  <script src="options.js"></script>
+</body>
+
 </html>

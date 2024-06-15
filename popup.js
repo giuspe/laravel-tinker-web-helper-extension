@@ -4,7 +4,6 @@
         const feedBackForLocalStorage = document.querySelector('#feedbackLS')
         const snippetsListTable = document.getElementById('snippets-table-body')
         const debugPanel = document.querySelector('#debugPanel')
-        const exportBtn = document.querySelector('#export')
         const footerInfo = document.querySelector('.footerInfo')
 
         const channel = new BroadcastChannel('LARAWEL_WEB_TINKER_HELPER');
@@ -18,13 +17,15 @@
             verboseLogs: false,
             usePortInDomainKey: true,
             highlightStyle: 'stackoverflow-light',
+            snippetImportAction: 'merge',
+            snippetImportActionMergeStrategy: 'replreplace-sameace-same',
         }
 
         const iconSuccess = `✔️`
         const iconError = `❌`
 
         await getSettings()
-        setGeneralListeners()
+        await setGeneralListeners()
         await populateSnippetsList()
         const settingsAreValid = await checkSettings()
 
@@ -40,10 +41,6 @@
         /*
         <-----------Util Functions Start------------------------------------------------------>
         */
-
-        function appendToActivityLog(content = '') {
-            feedBackForLocalStorage.innerHTML += '<hr />' + content
-        }
 
         function refreshActivityLog(content = '') {
             feedBackForLocalStorage.innerHTML = content
@@ -109,7 +106,7 @@
         // Add a value to a specific key array in local storage
         async function setExtensionStorageArrayValue(targetKey = '', domain = '', value = '', innerKey = '') {
             try {
-                if (innerKey.length === 0) {
+                if (innerKey?.length === 0) {
                     innerKey = crypto.randomUUID()
                 }
 
@@ -147,7 +144,6 @@
             } catch (err) {
                 console.error(
                     'Error occured in setExtensionStorageArrayValue',
-                    typeOfStorage,
                     err
                 )
             }
@@ -161,6 +157,8 @@
                     log(`getExtensionStorageArrayValue: current container for key ${targetKey} is empty`)
                     current = {}
                 }
+
+                console.log(`getting key ${innerKey} for domain ${domain}`)
 
                 if (domain?.length < 1) {
                     return current
@@ -180,7 +178,6 @@
             } catch (err) {
                 console.error(
                     'Error occured in getExtensionStorageArrayValue',
-                    typeOfStorage,
                     err
                 )
             }
@@ -216,9 +213,9 @@
 
         function getLatestSnippet() {
             const sorted = getSortedItems(items)
-            if(sorted?.length) {
+            if (sorted?.length) {
                 const key = Object.keys(sorted)[0]
-                return { key: key, item: sorted[key] } 
+                return { key: key, item: sorted[key] }
             }
             return null
         }
@@ -366,10 +363,11 @@
 
             if (!key) {
                 const link = activeItem
-                const key = link.getAttribute('data-id')
+                key = link.getAttribute('data-id')
             }
             const [domain, tab, tabId] = await getContext()
             const value = await getExtensionStorageArrayValue('tinker-web-archive', domain, key)
+            console.log('value is ', value)
 
             await chrome.scripting.executeScript({ target: { tabId: tabId }, func: setLocalStorageValue, args: [settings.tinkerKeyName, value] })
 
@@ -389,7 +387,7 @@
             await setExtensionStorageArrayValue('tinker-web-archive', domain, '', key)
             refreshActivityLog(`Tinker-web content saved item ${key} was removed. ${iconSuccess}`)
 
-            populateSnippetsList()
+            await populateSnippetsList()
             clearDebugPanel()
             activeItem = null
             updateGeneralActions()
@@ -402,7 +400,7 @@
 
             if (!key) {
                 const link = activeItem
-                const key = link.getAttribute('data-id')
+                key = link.getAttribute('data-id')
             }
             const localKey = settings.tinkerKeyName
             const [domain, tab, tabId] = await getContext()
@@ -413,7 +411,7 @@
             await setExtensionStorageArrayValue('tinker-web-archive', domain, currentValue, key)
             refreshActivityLog(`Tinker-web current content was updated in current item. ${iconSuccess}`)
 
-            populateSnippetsList()
+            await populateSnippetsList()
             chrome.tabs.reload(tabId)
         }
 
@@ -456,7 +454,7 @@
             await setExtensionStorageArrayValue('tinker-web-archive', domain, content, prefix + name)
             refreshActivityLog(`Tinker-web content local value was saved in archive. ${iconSuccess}`)
 
-            populateSnippetsList()
+            await populateSnippetsList()
         }
 
         function setActiveItem(e, element = '', key) {
@@ -484,14 +482,14 @@
                 el.classList.add('selected')
 
                 // check for keyboard modifiers
-                if(e?.ctrlKey) {
+                if (e?.ctrlKey) {
                     updateItem(null, key)
-                } else if(e?.altKey) {
+                } else if (e?.altKey) {
                     restoreItem(null, key)
-                } else if(e?.shiftKey) {
+                } else if (e?.shiftKey) {
                     previewItem(null, key)
                 }
-            } else if (activeItem  == el) {
+            } else if (activeItem == el) {
                 activeItem = null
             }
             clearDebugPanel()
@@ -551,7 +549,7 @@
             updateGeneralActions()
         }
 
-        function setGeneralListeners() {
+        async function setGeneralListeners() {
             document.getElementById('action-restore').addEventListener('click', restoreItem, false)
             document.getElementById('action-restore-backup').addEventListener('click', async function (e) {
                 const name = 'backup'
@@ -561,9 +559,11 @@
             document.getElementById('action-delete').addEventListener('click', deleteItem, false)
             document.getElementById('action-update').addEventListener('click', updateItem, false)
 
-            channel.onmessage = (event) => {
+            const [domain, tab, tabId] = await getContext()
+
+            channel.onmessage = async (event) => {
                 log('message received from service worker', event.data);
-                switch(event.data.action) {
+                switch (event.data.action) {
                     case 'update-latest-snippet':
                         log('Updating latest snippet', event.data);
                         const snippets = document.querySelectorAll('tr.code-item')
@@ -573,34 +573,21 @@
                         }
                         setActiveItem(null, snippets[0])
                         updateItem()
+                        break
+                    case 'refresh-page':
+                        await populateSnippetsList()
+                        break
                     default:
                         log('Action unknown', event.data);
                 }
             }
         }
 
-        async function exportItems(name = '') {
-            if (!name) {
-                name = Date.now() + `.tinker-web-helper`
-            }
-            const content = JSON.stringify(items, null, 4)
-            let vLink = document.createElement('a'),
-                vBlob = new Blob([content], { type: "octet/stream" }),
-                vName = `${name}.json`,
-                vUrl = window.URL.createObjectURL(vBlob)
-            vLink.setAttribute('href', vUrl)
-            vLink.setAttribute('download', vName)
-            vLink.click()
-        }
-
         async function getSettings() {
             chrome.storage.sync.get(
                 settingsDefaults,
                 (items) => {
-                    log(`settings are`)
-                    log(items)
                     settings = items
-                    setHighlightStyle()
                 }
             )
         }
@@ -633,7 +620,7 @@
                 highlightMatches(toSearch)
             }
             for (const [key, value] of Object.entries(items)) {
-                if (toSearch.length > 2 && value.indexOf(toSearch) === -1) {
+                if (toSearch.length > 2 && value.toLowerCase().indexOf(toSearch.toLowerCase()) === -1) {
                     document.getElementById(`code-item-${key}`).classList.add('hidden')
                 } else {
                     document.getElementById(`code-item-${key}`).classList.remove('hidden')
@@ -647,10 +634,6 @@
                 name = (new Date()).toLocaleString(settings.locale)
             }
             await saveItem(name)
-        })
-
-        exportBtn?.addEventListener('click', async () => {
-            await exportItems()
         })
 
         footerInfo.addEventListener('click', (event) => {
