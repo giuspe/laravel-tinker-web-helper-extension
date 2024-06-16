@@ -1,6 +1,6 @@
 {
   "name": "Laravel Web-Tinker manager",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "description": "Helps you manage code for all of your Laravel web-tinker tabs! Save/restore/organize your code",
   "permissions": [
     "scripting",

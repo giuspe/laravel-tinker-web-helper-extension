@@ -5,6 +5,8 @@ const exportItemsKey = 'tinker-web-archive-domains'
 const saveOptions = () => {
     const verboseLogs = document.getElementById('verboseLogs').checked;
     const usePortInDomainKey = document.getElementById('usePortInDomainKey').checked;
+    const showAllDomains = document.getElementById('showAllDomains').checked;
+    const allowEditToOtherDomains = document.getElementById('allowEditToOtherDomains').checked;
     const tinkerKeyName = document.getElementById('tinker-storage-key-name').value;
     const locale = document.getElementById('locale').value;
     const snippetImportAction = document.getElementById('snippetImportAction').value;
@@ -18,6 +20,8 @@ const saveOptions = () => {
             verboseLogs,
             highlightStyle,
             usePortInDomainKey,
+            showAllDomains,
+            allowEditToOtherDomains,
             snippetImportAction,
             snippetImportActionMergeStrategy,
         },
@@ -29,6 +33,8 @@ const saveOptions = () => {
 
 const logStatus = (msg, persistent = false, type = 'log', noAnimation = false, raw = false) => {
     const status = document.getElementById('status')
+
+    status.innerHTML = ''
 
     status.classList.remove('error', 'warning', 'success')
     if (type == 'error') {
@@ -51,7 +57,7 @@ const logStatus = (msg, persistent = false, type = 'log', noAnimation = false, r
 
     if (!persistent) {
         setTimeout(() => {
-            status.innerHtml = ''
+            status.innerHTML = ''
         }, 2500)
     }
 }
@@ -64,6 +70,9 @@ const restoreOptions = () => {
             tinkerKeyName: 'tinker-tool',
             locale: 'de-DE',
             verboseLogs: false,
+            showAllDomains: false,
+            allowEditToOtherDomains: false,
+            showAllDomainsverboseLogs: false,
             highlightStyle: 'stackoverflow-light',
             usePortInDomainKey: true,
             snippetImportAction: 'merge',
@@ -71,6 +80,8 @@ const restoreOptions = () => {
         },
         (items) => {
             document.getElementById('verboseLogs').checked = items.verboseLogs;
+            document.getElementById('showAllDomains').checked = items.showAllDomains;
+            document.getElementById('allowEditToOtherDomains').checked = items.allowEditToOtherDomains;
             document.getElementById('usePortInDomainKey').checked = items.usePortInDomainKey;
             document.getElementById('tinker-storage-key-name').value = items.tinkerKeyName
             document.getElementById('locale').value = items.locale
@@ -90,24 +101,35 @@ const previewImportFile = () => {
     }
     let reader = new FileReader()
     reader.onload = function (e) {
-        const data = JSON.parse(e.target.result) ?? {}
-        const importData = data[exportItemsKey] ?? null
-        if (!importData) {
-            const msg = `Import file doesn't look good...`
-            logStatus(msg, true, 'error')
-            return
+        try {
+            const data = JSON.parse(e.target.result) ?? {}
+            const importData = data[exportItemsKey] ?? null
+            if (!importData) {
+                const msg = `Import file doesn't look good...`
+                logStatus(msg, true, 'error')
+                return
+            }
+            const domains = Object.keys(importData)
+            logStatus(`json file contains ${domains.length} domain(s)`, true)
+            let previewContent = ''
+            domains.forEach((domain) => {
+                const snippets = importData[domain]
+                previewContent += `
+                    <li class="import-keys-domain">
+                        <input id="import-keys-domain-${domain}" class="import-keys-domain-key" type="checkbox" data-key="${domain}" checked />${domain} (${Object.keys(snippets).length} snippets)
+                    </li>
+                `
+            })
+            document.getElementById('import-preview').innerHTML = `<ul>${previewContent}</ul>`
+        } catch ({ name, message }) {
+            console.error(
+                'Error occured in previewImportFile',
+                message
+            )
+            const shortErr = message.slice(0, message.indexOf("\n"));
+            console.log(message)
+            logStatus(`json file has invalid content! message was: <br/> '${message}'`, true, 'error', true, true)
         }
-        const domains = Object.keys(importData)
-        logStatus(`json file contains ${domains.length} domain(s)`, true)
-        domains.forEach((domain) => {
-            const snippets = importData[domain]
-            previewContent = `
-                <li class="import-keys-domain">
-                    <input id="import-keys-domain-${domain}" class="import-keys-domain-key" type="checkbox" data-key="${domain}" checked />${domain} (${Object.keys(snippets).length} snippets)
-                </li>
-            `
-        })
-        document.getElementById('import-preview').innerHTML = `<ul>${previewContent}</ul>`
     }
     reader.readAsText(file);
 }
@@ -162,6 +184,22 @@ const showHideMergeStrategy = () => {
         document.getElementById('snippetImportActionMergeStrategyContainer').removeAttribute('hidden')
     }
 }
+
+const changeActiveMenu = (e) => {
+    const clicked = e.target
+    
+    const menuKey = clicked.getAttribute('data-menu-id')
+    document.querySelectorAll('.pure-menu-item').forEach((menuPanel) => {
+        menuPanel.classList.remove('pure-menu-selected')
+    })
+    clicked.classList.add('pure-menu-selected')
+
+
+    document.querySelectorAll('fieldset.menu').forEach((menuPanel) => {
+        menuPanel.classList.add('hidden')
+    })
+    document.getElementById(`tab-${menuKey}`).classList.remove('hidden')
+} 
 
 
 /* Utility functions */
@@ -277,6 +315,15 @@ if (autosaveItems.length > 0) {
         autosaveItems[i].addEventListener('change', autosaveForm);
     }
 }
+
+const menus = document.querySelectorAll('.pure-menu-item')
+if (menus.length > 0) {
+    for (let i = 0; i < menus.length; i++) {
+        menus[i].addEventListener('click', changeActiveMenu);
+    }
+}
+
+document.querySelector('.pure-menu-link[data-menu-id="general"]').click()
 
 logStatus(`
     Welcome to the options page!

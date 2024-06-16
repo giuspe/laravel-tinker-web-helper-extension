@@ -9,12 +9,19 @@
         const channel = new BroadcastChannel('LARAWEL_WEB_TINKER_HELPER');
 
         let activeItem = null
+        let activeDomain = null
+        let currentDomain = null
+        let activeTab = null
+        let tabId = null
+
         let items = {}
         let settings = {}
         const settingsDefaults = {
             tinkerKeyName: 'tinker-tool',
             locale: 'de-DE',
             verboseLogs: false,
+            showAllDomains: false,
+            allowEditToOtherDomains: false,
             usePortInDomainKey: true,
             highlightStyle: 'stackoverflow-light',
             snippetImportAction: 'merge',
@@ -25,7 +32,9 @@
         const iconError = `❌`
 
         await getSettings()
+        await getContext()
         await setGeneralListeners()
+        await manageDomainsList()
         await populateSnippetsList()
         const settingsAreValid = await checkSettings()
 
@@ -266,7 +275,7 @@
 
         async function populateSnippetsList() {
             const [domain, tab, tabId] = await getContext()
-            items = await getExtensionStorageArrayValue('tinker-web-archive', domain)
+            items = await getExtensionStorageArrayValue('tinker-web-archive', await getSelectedDomain())
             setItemList(items)
             setItemsListeners()
             updateGeneralActions()
@@ -382,9 +391,8 @@
 
             const link = activeItem
             const key = link.getAttribute('data-id')
-            const [domain, tab, tabId] = await getContext()
 
-            await setExtensionStorageArrayValue('tinker-web-archive', domain, '', key)
+            await setExtensionStorageArrayValue('tinker-web-archive', activeDomain, '', key)
             refreshActivityLog(`Tinker-web content saved item ${key} was removed. ${iconSuccess}`)
 
             await populateSnippetsList()
@@ -444,14 +452,12 @@
         }
 
         async function saveItem(name, content = '', skipTimestamp = false) {
-            const [domain, tab, tabId] = await getContext()
-
             if (!content) {
                 content = await getCurrentContent()
             }
             const prefix = skipTimestamp ? '' : Date.now() + '::'
 
-            await setExtensionStorageArrayValue('tinker-web-archive', domain, content, prefix + name)
+            await setExtensionStorageArrayValue('tinker-web-archive', activeDomain, content, prefix + name)
             refreshActivityLog(`Tinker-web content local value was saved in archive. ${iconSuccess}`)
 
             await populateSnippetsList()
@@ -497,11 +503,16 @@
         }
 
         async function getContext() {
-            const activeTab = await getActiveTabURL()
-            const domain = await getActiveTabDomain()
-            const tabId = activeTab?.id
+            currentDomain = currentDomain ?? await getActiveTabDomain()
+            activeDomain = activeDomain ?? currentDomain
+            activeTab = activeTab ?? await getActiveTabURL()
+            tabId = tabId ?? activeTab?.id
 
-            return [domain, activeTab, tabId]
+            return [activeDomain, activeTab, tabId]
+        }
+        
+        async function getSelectedDomain() {
+            return document.getElementById('domains').value
         }
 
         async function getCurrentContent(key = '') {
@@ -520,6 +531,16 @@
             const disabledClass = 'pure-button-disabled'
             for (let i = 0; i < actionButtons.length; i++) {
                 activeItem ? actionButtons[i].classList.remove(disabledClass) : actionButtons[i].classList.add(disabledClass)
+            }
+
+            if (currentDomain != activeDomain && !settings.allowEditToOtherDomains) {
+                document.getElementById('saveCurrentCode').classList.add(disabledClass)
+                if (activeItem) {
+                    document.getElementById('action-update').classList.add(disabledClass)
+                    document.getElementById('action-delete').classList.add(disabledClass)
+                } 
+            } else {
+                document.getElementById('saveCurrentCode').classList.remove(disabledClass)
             }
         }
 
@@ -558,6 +579,7 @@
             }, false)
             document.getElementById('action-delete').addEventListener('click', deleteItem, false)
             document.getElementById('action-update').addEventListener('click', updateItem, false)
+            document.getElementById('domains').addEventListener('change', manageDomainsList, false)
 
             const [domain, tab, tabId] = await getContext()
 
@@ -584,16 +606,51 @@
         }
 
         async function getSettings() {
-            chrome.storage.sync.get(
-                settingsDefaults,
-                (items) => {
-                    settings = items
+            return new Promise((resolve, reject) => {
+                try {
+                    chrome.storage.sync.get(
+                        settingsDefaults,
+                        (items) => {
+                            settings = items
+                            resolve(items)
+                        }
+                    )
+                } catch (ex) {
+                    reject(ex)
                 }
-            )
+            })
+        }
+        
+        async function manageDomainsList(e) {
+            const domainList = document.getElementById('domains')
+            const selected = e?.target?.value ?? currentDomain
+
+            console.log(`selected domain is: ${selected}`)
+
+            const domainOptions = document.querySelectorAll('#domains option')
+            if (domainOptions.length === 0) {
+                const domainData = await getExtensionStorageArrayValue('tinker-web-archive')
+                Object.keys(domainData).forEach((domainItem) => {
+                    const item = document.createElement('option')
+                    item.setAttribute("id", `domain-${domainItem}`)
+                    item.setAttribute("data-domain", `${domainItem}`)
+                    item.setAttribute("value", `${domainItem}`)
+                    item.append(domainItem == currentDomain ? `${domainItem} (current)` : domainItem);
+                    domainList.appendChild(item)
+                })
+            }
+            document.querySelectorAll('#domains option').forEach((option) => { option.removeAttribute('selected')})
+            document.querySelector(`#domains option[value="${selected}"`)?.setAttribute('selected', true)
+
+            activeDomain = selected
+
+            if (!settings.showAllDomains) {
+                document.getElementById('domains-selector-container')?.setAttribute('hidden', true)
+            }
+            populateSnippetsList()
         }
 
         function setHighlightStyle() {
-
             let cssPath = document.getElementById('highlight-style').href
             log(`current highlight style is: ${cssPath}`)
             if (settings.highlightStyle != 'default') {

@@ -40,41 +40,62 @@
       color: green;
     }
 
-    #import-preview li {}
-
     #import-preview li input {
       display: inline-block;
       margin-right: 1em;
+    }
+
+    .hidden {
+      display: none;
     }
   </style>
 </head>
 
 <body>
   <div class="pure-g code-item">
+    <div class="pure-menu pure-menu-horizontal">
+      <ul class="pure-menu-list">
+        <li class="pure-menu-item" id="menu-item-button-general">
+          <a href="#" class="pure-menu-link" data-menu-id="general">General</a>
+        </li>
+        <li class="pure-menu-item" id="menu-item-button-advanced">
+          <a href="#" class="pure-menu-link" data-menu-id="advanced">Advanced</a>
+        </li>
+        <li class="pure-menu-item" id="menu-item-button-import">
+          <a href="#" class="pure-menu-link" data-menu-id="import">Import</a>
+        </li>
+        <li class="pure-menu-item" id="menu-item-button-export">
+          <a href="#" class="pure-menu-link" data-menu-id="export">Export</a>
+        </li>
+      </ul>
+    </div>
     <div class="pure-u-16-24">
       <form class="pure-form pure-form-stacked" style="padding: 2em;">
-        <fieldset class="pure-group">
+        <fieldset class="pure-group menu" id="tab-advanced">
           <div class="pure-control-group">
             <label for="tinker-storage-key-name">Tinker local storage key name</label>
             <input type="text" id="tinker-storage-key-name" placeholder="Username" class="autosave" />
             <span class="pure-form-message-inline">The extension will look for this value into local storage. You
               probably don't need to change this.</span>
           </div>
-        </fieldset>
-
-        <fieldset class="pure-group">
           <div class="pure-control-group">
-            <label for="locale">UI locale</label>
-            <select id="locale" class="autosave">
-              <option value="de-DE">de-DE</option>
-              <option value="en-EN">en-EN</option>
-              <option value="it-IT">it-IT</option>
-            </select>
-            <span class="pure-form-message-inline">This value just affects the formatting of dates.</span>
+            <label for="usePortInDomainKey" class="pure-checkbox">
+              <input type="checkbox" id="usePortInDomainKey" class="autosave" /> Use address port (if present) in the
+              domain key.
+            </label>
+            <span class="pure-form-message-inline">This flag makes the extension consider the port (and not just the
+              domain) to compose the domain unique key. Keep this on if you need to use the extension for 'localhost' or
+              '127.0.0.1' tinker panels.</span>
+          </div>
+          <div class="pure-control-group">
+            <label for="verboseLogs" class="pure-checkbox">
+              <input type="checkbox" id="verboseLogs" class="autosave" /> Verbose logs in console
+            </label>
+            <span class="pure-form-message-inline">Make the extension louder in dev-tools console.</span>
           </div>
         </fieldset>
 
-        <fieldset class="pure-group">
+        <fieldset class="pure-group menu" id="tab-import">
           <div class="pure-control-group">
             <label for="snippetImportAction">Snippet import action</label>
             <select id="snippetImportAction" class="autosave">
@@ -96,8 +117,36 @@
             <span class="pure-form-message-inline">If the 'Merge' tactic is selected, this determines strategy for
               conflicting keys (per domain): keep the current one or use the one from the imported file?.</span>
           </div>
+          <div class="pure-control-group">
+            <label for="import">Import .json file</label>
+            <input type="file" id="import" accept=".json" />
+            <div id="import-preview"></div>
+            <span class="pure-form-message-inline"><button type="button" id="import-button">import snippets from
+                json</button></span>
+            <span class="pure-form-message-inline">Here you can import a .json file of snippets.</span>
+          </div>
         </fieldset>
-        <fieldset class="pure-group">
+
+
+       <fieldset class="pure-group menu" id="tab-export">
+          <div class="pure-control-group">
+            <label for="export">export snippets to .json</label>
+            <button type="button" class='pure-button' id="export">export</button>
+            <span class="pure-form-message-inline">Export all your snippets (by domain) in a .json file.</span>
+          </div>
+        </fieldset>
+
+
+        <fieldset class="pure-group menu" id="tab-general">
+          <div class="pure-control-group">
+            <label for="locale">UI locale</label>
+            <select id="locale" class="autosave">
+              <option value="de-DE">de-DE</option>
+              <option value="en-EN">en-EN</option>
+              <option value="it-IT">it-IT</option>
+            </select>
+            <span class="pure-form-message-inline">This value just affects the formatting of dates.</span>
+          </div>
           <div class="pure-control-group">
             <label for="highlightStyle">Code highlight style</label>
             <select id="highlightStyle" class="autosave">
@@ -107,39 +156,16 @@
             </select>
             <span class="pure-form-message-inline">Code display style for the snippet preview window.</span>
           </div>
-        </fieldset>
-        <fieldset class="pure-group">
           <div class="pure-control-group">
-            <label for="verboseLogs" class="pure-checkbox">
-              <input type="checkbox" id="verboseLogs" class="autosave" /> Verbose logs in console
+            <label for="showAllDomains" class="pure-checkbox">
+              <input type="checkbox" id="showAllDomains" class="autosave" /> Always show snippets from all domains.
             </label>
-            <span class="pure-form-message-inline">Make the extension louder in dev-tools console.</span>
           </div>
-        </fieldset>
-        <fieldset class="pure-group">
           <div class="pure-control-group">
-            <label for="usePortInDomainKey" class="pure-checkbox">
-              <input type="checkbox" id="usePortInDomainKey" class="autosave" /> Use address port (if present) in the
-              domain key.
+            <label for="allowEditToOtherDomains" class="pure-checkbox">
+              <input type="checkbox" id="allowEditToOtherDomains" class="autosave" /> Allow saving/updating/deleting
+              snippets from other domains.
             </label>
-            <span class="pure-form-message-inline">This flag makes the extension consider the port (and not just the
-              domain) to compose the domain unique key. Keep this on if you need to use the extension for 'localhost' or
-              '127.0.0.1' tinker panels.</span>
-          </div>
-        </fieldset>
-        <fieldset class="pure-group">
-          <div class="pure-control-group">
-            <label for="import">Import .json file</label>
-            <input type="file" id="import" accept=".json" />
-            <div id="import-preview"></div>
-            <span class="pure-form-message-inline"><button type="button" id="import-button">import snippets from
-                json</button></span>
-            <span class="pure-form-message-inline">Here you can import a .json file of snippets.</span>
-          </div>
-          <div class="pure-control-group">
-            <label for="export">export snippets to .json</label>
-            <button type="button" class='pure-button' id="export">export</button>
-            <span class="pure-form-message-inline">Export all your snippets (by domain) in a .json file.</span>
           </div>
         </fieldset>
         <fieldset class="pure-group">

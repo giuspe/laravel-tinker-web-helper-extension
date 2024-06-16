@@ -41,18 +41,22 @@
   </header>
   <main id="main-container">
     <p id="feedbackLS"></p>
-    <div class="localStorageBtns">
-      <form class="pure-form pure-form-aligned">
-        <fieldset>
-          <div class="pure-control-group">
-            <input type="text" id="save-item-key" placeholder="name" />
-            <button id="saveCurrentCode" class='pure-button pure-button-primary button-large' type="button">
-              save current code into new snippet
-            </button>
-          </div>
-        </fieldset>
-      </form>
-    </div>
+    <form class="pure-form">
+      <fieldset>
+        <div class="pure-control-group">
+          <input type="text" id="save-item-key" placeholder="name" />
+          <button id="saveCurrentCode" class='pure-button pure-button-primary button-large' type="button">
+            save current code into new snippet
+          </button>
+        </div>
+      </fieldset>
+      <fieldset>
+        <div class="pure-control-group" id="domains-selector-container">
+          <label for="domains">View snippets from domain</label>
+          <select id="domains"></select>
+        </div>
+      </fieldset>
+    </form>
     <div class="pure-g code-item">
       <div class="pure-u-12-24">
         <div id="search">
@@ -71,8 +75,7 @@
       <div class="pure-u-12-24">
         <div class="pure-button-group" id="actions-general" role="group" aria-label="snippet actions">
           <a href='#' class='pure-button button-secondary restore' title='load' id='action-restore'> load</i></a>
-          <a href='#' class='pure-button button-secondary restore-backup' title='load (with backup)'
-            id='action-restore-backup'> backup & load</a>
+          <a href='#' class='pure-button button-secondary restore-backup' title='load (with backup)' id='action-restore-backup'> backup & load</a>
           <a href='#' class='pure-button button-secondary update' title='update' id='action-update'> update</a>
           <a href='#' class='pure-button button-warning delete' title='delete' id='action-delete'> delete</a>
         </div>
